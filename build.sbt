@@ -32,26 +32,26 @@ val commonSettings = commonCommonSettings ++ Seq(
     </scm>
 )
 
-def shapelessDependency(scalaVersion: String) = scalaVersion match {
+def macrosDependencies(scalaVersion: String) = scalaVersion match {
   case v if v.startsWith("2.10") => Seq(
-    "com.chuusai" %% "shapeless" % "2.2.3",
     compilerPlugin("org.scalamacros" %% "paradise" % "2.0.1" cross CrossVersion.full)
   )
-  case _ => Seq("com.chuusai" %% "shapeless" % "2.2.3")
+  case _ => Seq()
 }
 
-def commonDependencies(scalaVersion: String) =
-  Seq("org.scalatest" %% "scalatest" % "2.2.5" % "test") ++
-    shapelessDependency(scalaVersion)
+lazy val commonDependencies = Def.setting(Seq(
+  "com.chuusai" %%% "shapeless" % "2.2.3",
+  "org.scalatest" %%% "scalatest" % "3.0.0-M7" % "test"
+))
 
-lazy val core = project
+lazy val core = crossProject.crossType(CrossType.Pure)
   .settings(commonSettings: _*)
   .settings(
     name := "picopickle-core",
 
-    libraryDependencies ++= commonDependencies(scalaVersion.value) ++ Seq(
+    libraryDependencies ++= commonDependencies.value ++ Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
+    ) ++ macrosDependencies(scalaVersion.value),
 
     sourceGenerators in Compile += task[Seq[File]] {
       val outFile = (sourceManaged in Compile).value / "io" / "github" / "netvl" / "picopickle" / "generated.scala"
@@ -114,34 +114,37 @@ lazy val core = project
     sourceGenerators in Test += TestGeneration.generatedFiles(sourceManaged in Test).taskValue
   )
 
+lazy val coreJvm = core.jvm
+lazy val coreJs = core.js
+
 lazy val jawn = project
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(coreJvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
     name := "picopickle-backend-jawn",
 
     sourceGenerators in Test += TestGeneration.generatedFiles(sourceManaged in Test).taskValue,
 
-    libraryDependencies ++= commonDependencies(scalaVersion.value) ++ Seq(
+    libraryDependencies ++= commonDependencies.value ++ Seq(
       "org.spire-math" %% "jawn-parser" % "0.8.0"
-    )
+    ) ++ macrosDependencies(scalaVersion.value)
   )
 
 lazy val mongodb = project
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(coreJvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
     name := "picopickle-backend-mongodb-bson",
 
     sourceGenerators in Test += TestGeneration.generatedFiles(sourceManaged in Test).taskValue,
 
-    libraryDependencies ++= commonDependencies(scalaVersion.value) ++ Seq(
+    libraryDependencies ++= commonDependencies.value ++ Seq(
       "org.mongodb" % "bson" % "3.0.2"
-    )
+    ) ++ macrosDependencies(scalaVersion.value)
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, jawn, mongodb)
+  .aggregate(coreJvm, jawn, mongodb)
   .settings(commonCommonSettings: _*)
   .settings(unidocSettings: _*)
   .settings(site.settings ++ ghpages.settings: _*)

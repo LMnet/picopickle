@@ -4,7 +4,7 @@ import scala.collection.immutable.{TreeMap, TreeSet}
 import scala.collection.mutable
 import shapeless._
 
-import org.scalatest.{FreeSpec, ShouldMatchers}
+import org.scalatest.{MustMatchers, FreeSpec}
 
 object ConvertersTestBase {
   object ComplexObjects {
@@ -13,7 +13,7 @@ object ConvertersTestBase {
   }
 }
 
-trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickler {
+trait ConvertersTestBase extends FreeSpec with MustMatchers with DefaultPickler {
   this: BackendComponent =>
 
   import backend._
@@ -26,47 +26,47 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
   "Converters" - {
     s"should convert to and from the $backendName representation" - {
       "null" in {
-        `null`.isDefinedAt(makeNull) shouldBe true
-        (`null`.fromBackend(makeNull): Any) shouldEqual (null: Any)
+        `null`.isDefinedAt(makeNull) mustBe true
+        (`null`.fromBackend(makeNull): Any) mustEqual (null: Any)
 
-        `null`.isDefinedAt("something".toBackend) shouldBe false
+        `null`.isDefinedAt("something".toBackend) mustBe false
 
-        `null`.toBackend(null) shouldEqual (makeNull: Any)
+        `null`.toBackend(null) mustEqual (makeNull: Any)
       }
 
       "booleans" in {
-        bool.isDefinedAt(true.toBackend) shouldBe true
-        bool.fromBackend(true.toBackend) shouldBe true
+        bool.isDefinedAt(true.toBackend) mustBe true
+        bool.fromBackend(true.toBackend) mustBe true
 
-        bool.isDefinedAt(false.toBackend) shouldBe true
-        bool.fromBackend(false.toBackend) shouldBe false
+        bool.isDefinedAt(false.toBackend) mustBe true
+        bool.fromBackend(false.toBackend) mustBe false
 
-        bool.isDefinedAt("something".toBackend) shouldBe false
+        bool.isDefinedAt("something".toBackend) mustBe false
 
-        bool.toBackend(true) shouldBe true.toBackend
-        bool.toBackend(false) shouldBe false.toBackend
+        bool.toBackend(true) mustBe true.toBackend
+        bool.toBackend(false) mustBe false.toBackend
       }
 
       "numbers" in {
-        num.isDefinedAt((1: Int).toBackend) shouldBe true
-        num.fromBackend((1: Int).toBackend) shouldEqual 1
+        num.isDefinedAt((1: Int).toBackend) mustBe true
+        num.fromBackend((1: Int).toBackend) mustEqual 1
 
-        num.isDefinedAt((10.1: Double).toBackend) shouldBe true
-        num.fromBackend((10.1: Double).toBackend) shouldEqual 10.1
+        num.isDefinedAt((10.1: Double).toBackend) mustBe true
+        num.fromBackend((10.1: Double).toBackend) mustEqual 10.1
 
-        num.isDefinedAt("something".toBackend) shouldBe false
+        num.isDefinedAt("something".toBackend) mustBe false
 
-        num.toBackend(133: Long) shouldEqual 133L.toBackend
-        num.toBackend(42.2f) shouldEqual 42.2f.toBackend
+        num.toBackend(133: Long) mustEqual 133L.toBackend
+        num.toBackend(42.2f) mustEqual 42.2f.toBackend
       }
 
       "strings" in {
-        str.isDefinedAt("abcde".toBackend) shouldBe true
-        str.fromBackend("abcde".toBackend) shouldEqual "abcde"
+        str.isDefinedAt("abcde".toBackend) mustBe true
+        str.fromBackend("abcde".toBackend) mustEqual "abcde"
 
-        str.isDefinedAt(12345.toBackend) shouldBe false
+        str.isDefinedAt(12345.toBackend) mustBe false
 
-        str.toBackend("hello") shouldEqual "hello".toBackend
+        str.toBackend("hello") mustEqual "hello".toBackend
       }
 
       "objects" in {
@@ -81,16 +81,16 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
         val t3 = Map("b" -> "hello".toBackend).toBackend
         val t4 = Map("a" -> 342.toBackend, "b" -> "goodbye".toBackend, "c" -> false.toBackend).toBackend
 
-        m.isDefinedAt(t1) shouldBe true
-        m.fromBackend(t1) shouldEqual (123 :: "hello" :: HNil)
+        m.isDefinedAt(t1) mustBe true
+        m.fromBackend(t1) mustEqual (123 :: "hello" :: HNil)
 
-        m.isDefinedAt(t2) shouldBe false
-        m.isDefinedAt(t3) shouldBe false
+        m.isDefinedAt(t2) mustBe false
+        m.isDefinedAt(t3) mustBe false
 
-        m.isDefinedAt(t4) shouldBe true
-        m.fromBackend(t4) shouldEqual (342 :: "goodbye" :: HNil)
+        m.isDefinedAt(t4) mustBe true
+        m.fromBackend(t4) mustEqual (342 :: "goodbye" :: HNil)
 
-        m.toBackend(234 :: "blabla" :: HNil) shouldEqual Map("a" -> 234.toBackend, "b" -> "blabla".toBackend).toBackend
+        m.toBackend(234 :: "blabla" :: HNil) mustEqual Map("a" -> 234.toBackend, "b" -> "blabla".toBackend).toBackend
       }
 
       "complex classes" in {
@@ -123,10 +123,10 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
           ).toBackend
         ).toBackend
 
-        ac.isDefinedAt(t) shouldBe true
-        ac.fromBackend(t) shouldEqual s
+        ac.isDefinedAt(t) mustBe true
+        ac.fromBackend(t) mustEqual s
 
-        ac.toBackend(s) shouldEqual t
+        ac.toBackend(s) mustEqual t
       }
 
       "homogeneous arrays" in {
@@ -134,16 +134,16 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
         val cs = arr.as[Set] of num.int
 
         val c1 = Vector(1.toBackend, 2.toBackend, 3.toBackend).toBackend
-        cv.isDefinedAt(c1) shouldBe true
-        cv.fromBackend(c1) shouldEqual Vector(1, 2, 3)
-        cv.toBackend(Vector(1, 2, 3)) shouldEqual c1
-        cs.isDefinedAt(c1) shouldBe true
-        cs.fromBackend(c1) shouldEqual Set(1, 2, 3)
-        cs.toBackend(TreeSet(1, 2, 3)) shouldEqual c1
+        cv.isDefinedAt(c1) mustBe true
+        cv.fromBackend(c1) mustEqual Vector(1, 2, 3)
+        cv.toBackend(Vector(1, 2, 3)) mustEqual c1
+        cs.isDefinedAt(c1) mustBe true
+        cs.fromBackend(c1) mustEqual Set(1, 2, 3)
+        cs.toBackend(TreeSet(1, 2, 3)) mustEqual c1
 
         val c2 = Vector("a".toBackend, "e".toBackend).toBackend
-        cv.isDefinedAt(c2) shouldBe false
-        cs.isDefinedAt(c2) shouldBe false
+        cv.isDefinedAt(c2) mustBe false
+        cs.isDefinedAt(c2) mustBe false
       }
 
       "heterogenous arrays" in {
@@ -152,31 +152,31 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
 
         val c1 = Vector("a".toBackend, 1.toBackend, Vector(false.toBackend, true.toBackend).toBackend).toBackend
         val r1 = "a" :: (1: Number) :: Set(true, false) :: HNil
-        ma.isDefinedAt(c1) shouldBe true
-        ma.fromBackend(c1) shouldEqual r1
-        ma.toBackend("a" :: (1: Number) :: TreeSet(false, true) :: HNil) shouldEqual c1
+        ma.isDefinedAt(c1) mustBe true
+        ma.fromBackend(c1) mustEqual r1
+        ma.toBackend("a" :: (1: Number) :: TreeSet(false, true) :: HNil) mustEqual c1
 
         val c2 = Vector("too small".toBackend).toBackend
-        ma.isDefinedAt(c2) shouldBe false
+        ma.isDefinedAt(c2) mustBe false
 
         val c3 = Vector(
           "too large".toBackend, 1.toBackend, Vector(true.toBackend).toBackend, "a".toBackend,
           34.toBackend, 22.9.toBackend, "zzz".toBackend
         ).toBackend
         val r3 = "too large" :: (1: Number) :: Set(true) :: HNil
-        ma.isDefinedAt(c3) shouldBe true
-        ma.fromBackend(c3) shouldEqual r3
-        ma.toBackend(r3) shouldEqual Vector("too large".toBackend, 1.toBackend, Vector(true.toBackend).toBackend).toBackend
+        ma.isDefinedAt(c3) mustBe true
+        ma.fromBackend(c3) mustEqual r3
+        ma.toBackend(r3) mustEqual Vector("too large".toBackend, 1.toBackend, Vector(true.toBackend).toBackend).toBackend
 
         val c4 = Vector("incorrect types".toBackend, true.toBackend, Vector(false.toBackend).toBackend).toBackend
-        ma.isDefinedAt(c4) shouldBe false
+        ma.isDefinedAt(c4) mustBe false
 
         val c5 = Vector().toBackend  // empty
-        me.isDefinedAt(c1) shouldBe true
-        me.fromBackend(c1) shouldEqual HNil
-        me.isDefinedAt(c5) shouldBe true
-        me.fromBackend(c5) shouldEqual HNil
-        me.toBackend(HNil) shouldEqual c5
+        me.isDefinedAt(c1) mustBe true
+        me.fromBackend(c1) mustEqual HNil
+        me.isDefinedAt(c5) mustBe true
+        me.fromBackend(c5) mustEqual HNil
+        me.toBackend(HNil) mustEqual c5
       }
 
       "object as map" in {
@@ -184,26 +184,26 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
         val mt = obj.as[TreeMap] to num.double
 
         val t1 = Map.empty[String, BValue].toBackend
-        mm.isDefinedAt(t1) shouldBe true
-        mm.fromBackend(t1) shouldBe 'empty
-        mm.toBackend(Map.empty) shouldEqual t1
-        mt.isDefinedAt(t1) shouldBe true
-        mt.fromBackend(t1) shouldBe 'empty
-        mt.toBackend(TreeMap.empty) shouldEqual t1
+        mm.isDefinedAt(t1) mustBe true
+        mm.fromBackend(t1) mustBe 'empty
+        mm.toBackend(Map.empty) mustEqual t1
+        mt.isDefinedAt(t1) mustBe true
+        mt.fromBackend(t1) mustBe 'empty
+        mt.toBackend(TreeMap.empty) mustEqual t1
 
         val t2 = Map[String, BValue]("a" -> 12.3.toBackend, "b" -> 13.4.toBackend).toBackend
         val s2m = Map("a" -> 12.3, "b" -> 13.4)
         val s2t = TreeMap("a" -> 12.3, "b" -> 13.4)
-        mm.isDefinedAt(t2) shouldBe true
-        mm.fromBackend(t2) shouldEqual s2m
-        mm.toBackend(s2m) shouldEqual t2
-        mt.isDefinedAt(t2) shouldBe true
-        mt.fromBackend(t2) shouldEqual s2t
-        mt.toBackend(s2t) shouldEqual t2
+        mm.isDefinedAt(t2) mustBe true
+        mm.fromBackend(t2) mustEqual s2m
+        mm.toBackend(s2m) mustEqual t2
+        mt.isDefinedAt(t2) mustBe true
+        mt.fromBackend(t2) mustEqual s2t
+        mt.toBackend(s2t) mustEqual t2
 
         val t3 = Map[String, BValue]("a" -> true.toBackend, "b" -> Vector(1.toBackend).toBackend).toBackend
-        mm.isDefinedAt(t3) shouldBe false
-        mt.isDefinedAt(t3) shouldBe false
+        mm.isDefinedAt(t3) mustBe false
+        mt.isDefinedAt(t3) mustBe false
       }
 
       "autoconverted classes" in {
@@ -241,9 +241,9 @@ trait ConvertersTestBase extends FreeSpec with ShouldMatchers with DefaultPickle
           ).toBackend
         ).toBackend
         val r1 = ("hello", mutable.LinkedHashSet(A(10, "hello", B(true, 42.4)), A(11, "bye", B(false, -42.4))))
-        m.isDefinedAt(t1) shouldBe true
-        m.fromBackend(t1) shouldEqual r1
-        m.toBackend(r1) shouldEqual t1
+        m.isDefinedAt(t1) mustBe true
+        m.fromBackend(t1) mustEqual r1
+        m.toBackend(r1) mustEqual t1
       }
     }
   }
